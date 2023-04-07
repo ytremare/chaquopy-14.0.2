@@ -1,0 +1,21 @@
+--- src-original/setup.py       2021-09-17 21:15:10.000000000 +0000
++++ src/setup.py        2023-04-03 11:54:47.113267448 +0000
+@@ -4,6 +4,10 @@
+ from Cython.Distutils import build_ext
+ 
+ 
++import builtins
++builtins.__NUMPY_SETUP__ = True  # Prevent the compiled parts from being imported.
++
++
+ class NumpyBuildExtCommand(build_ext):
+     """
+     build_ext command for use when numpy headers are needed.
+@@ -14,7 +18,7 @@
+     def run(self):
+         import numpy
+ 
+-        self.distribution.fetch_build_eggs(["numpy"])
++        # Chaquopy disabled: self.distribution.fetch_build_eggs(["numpy"])
+         self.include_dirs.append(numpy.get_include())
+         build_ext.run(self)
