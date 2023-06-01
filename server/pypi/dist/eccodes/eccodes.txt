@@ -1,1 +1,3 @@
+June 2023 Status
+Up to now eccodes is not supported for 32 bit Architecture
 
