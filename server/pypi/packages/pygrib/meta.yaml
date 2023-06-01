@@ -11,4 +11,4 @@ requirements:
 
   host:
     - numpy 1.19.5
-    - eccodes 1.5.1
+    - eccodes 2.30.0 
