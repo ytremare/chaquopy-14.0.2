@@ -1,1 +1,15 @@
+package:
+  name: libpng
+  version: 1.16.43
+
+build:
+  number: 0
+source:
+  url: https://github.com/pnggroup/libpng/archive/refs/heads/libpng16.zip
+#  git_rev: {{ version }}
+  
+requirements:
+
+  build:
+    - cmake
 
