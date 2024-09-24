@@ -1,1 +1,15 @@
+package:
+  name: libaec
+  version: 1.1.2
+
+build:
+  number: 0
+source:
+  url: https://gitlab.dkrz.de/k202009/libaec/-/archive/v1.1.2/libaec-v1.1.2.zip
+#  git_rev: {{ version }}
+  
+requirements:
+
+  build:
+    - cmake
 
