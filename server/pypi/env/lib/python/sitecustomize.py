@@ -1,72 +1,41 @@
-# build-wheel sets PYTHONPATH to ensure this file is imported on startup in pip and all of
+# build-wheel sets PYTHONPATH to ensure this file is imported on startup in all of
 # its Python subprocesses.
-#
-# build-wheel currently disables all pyproject.toml files by renaming them. At some point
-# we'll have to stop doing this in order to enable PEP 517 builds. However, pip overrides
-# PYTHONPATH when launching a PEP 517 build, which will prevent this file from taking
-# effect in the subprocess. So we may need to use a different approach, perhaps even using
-# a different PEP 517 front end like pypa/build.
-#
-# Since we're now using a setuptools version later than 60, all references to distutils
-# will be redirected to setuptools._distutils.
 
 import os
+import shlex
 import sys
 
+# Recent versions of setuptools redirect distutils to their own bundled copy, so try
+# to import that first. Even more recent versions of setuptools provide a .pth file
+# which makes this import unnecessary, but the package we're building might have
+# pinned an older version in its pyproject.toml file.
+try:
+    import setuptools  # noqa: F401
+except ImportError:
+    pass
 
-# --no-clean currently has no effect when running `pip wheel`
-# (https://github.com/pypa/pip/issues/5661), so disable the clean command to prevent it
-# destroying the evidence after a build failure. Monkey-patching at this level also handles
-# packages overriding the `clean` command using `cmdclass.`
-from distutils.dist import Distribution
-run_command_original = Distribution.run_command
+try:
+    from distutils import sysconfig
+except ImportError:
+    # distutils was removed in Python 3.12, so it will only exist if setuptools is
+    # in the build environment.
+    pass
+else:
+    # TODO: look into using crossenv to extract this from the Android sysconfigdata.
+    sysconfig.get_config_vars()  # Ensure _config_vars has been initialized.
+    sysconfig._config_vars["CFLAGS"] = \
+        "-Wno-unused-result -Wsign-compare -Wunreachable-code -DNDEBUG -g -fwrapv -O3 -Wall"
 
-def run_command_override(self, command):
-    if command == "clean":
-        print("Chaquopy: clean command disabled")
-    else:
-        run_command_original(self, command)
+    # Fix distutils ignoring LDFLAGS when building executables.
+    customize_compiler_original = sysconfig.customize_compiler
 
-Distribution.run_command = run_command_override
+    def customize_compiler_override(compiler):
+        customize_compiler_original(compiler)
+        ldflags = os.environ["LDFLAGS"]
+        if ldflags not in " ".join(compiler.linker_exe):
+            compiler.linker_exe += shlex.split(ldflags)
 
-
-# Remove include paths for the build Python, including any virtualenv. Monkey-patching at this
-# level handles both default paths added by distutils itself, and paths added explicitly by
-# setup.py scripts.
-import distutils.ccompiler
-import distutils.sysconfig
-
-gen_preprocess_options_original = distutils.ccompiler.gen_preprocess_options
-
-def gen_preprocess_options_override(macros, include_dirs):
-    include_dirs = [
-        item for item in include_dirs
-        if item not in [distutils.sysconfig.get_python_inc(),
-                        distutils.sysconfig.get_python_inc(plat_specific=True),
-                        os.path.join(sys.exec_prefix, 'include')]]
-    return gen_preprocess_options_original(macros, include_dirs)
-
-distutils.ccompiler.gen_preprocess_options = gen_preprocess_options_override
-
-
-# Override the CFLAGS from the build Python sysconfigdata file.
-# TODO: look into using crossenv to extract this from the Android sysconfigdata.
-distutils.sysconfig.get_config_vars()  # Ensure _config_vars has been initialized.
-distutils.sysconfig._config_vars["CFLAGS"] = \
-    "-Wno-unused-result -Wsign-compare -Wunreachable-code -DNDEBUG -g -fwrapv -O3 -Wall"
-
-
-# Fix distutils ignoring LDFLAGS when building executables.
-from distutils.util import split_quoted
-customize_compiler_original = distutils.sysconfig.customize_compiler
-
-def customize_compiler_override(compiler):
-    customize_compiler_original(compiler)
-    ldflags = os.environ["LDFLAGS"]
-    if ldflags not in " ".join(compiler.linker_exe):
-        compiler.linker_exe += split_quoted(ldflags)
-
-distutils.sysconfig.customize_compiler = customize_compiler_override
+    sysconfig.customize_compiler = customize_compiler_override
 
 
 # Call the next sitecustomize script if there is one

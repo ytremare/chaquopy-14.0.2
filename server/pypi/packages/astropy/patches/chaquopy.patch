@@ -1,0 +1,13 @@
+--- src-original/setup.py	2022-05-24 19:43:02.000000000 +0000
++++ src/setup.py	2023-07-24 14:54:26.328796259 +0000
+@@ -4,6 +4,10 @@
+ # NOTE: The configuration for the package, including the name, version, and
+ # other information are set in the pyproject.toml file.
+ 
++# Chaquopy
++import builtins
++builtins.__NUMPY_SETUP__ = True  # Prevent the compiled parts from being imported.
++
+ import sys
+ 
+ # First provide helpful messages if contributors try and run legacy commands

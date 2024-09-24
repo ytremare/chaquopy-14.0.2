@@ -1,0 +1,41 @@
+name: Setup Python
+description:
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-python@v5.1.0
+      with:
+        # This should include all major.minor versions supported by the runtime, plus
+        # OLD_BUILD_PYTHON_VERSION, MIN_BUILD_PYTHON_VERSION and
+        # MAX_BUILD_PYTHON_VERSION from test_gradle_plugin.
+        #
+        # For the default Python version, the micro version should be different to the
+        # one used by the runtime, because that's required by the integration tests
+        # `requires_python` and `marker_python_version`. For all other versions, we let
+        # the GitHub runner pick a micro version, which will be faster because it's
+        # locally cached.
+        python-version: |
+          3.6
+          3.7
+          3.8.10
+          3.9
+          3.10
+          3.11
+          3.12
+
+    - name: Set default Python command
+      id: python-default
+      shell: bash
+      run: |
+        version=$(target/list-versions.py --default)
+        if [ $RUNNER_OS = Windows ]; then
+            echo "command=py -$version"
+        else
+            echo "command=python$version"
+        fi >> $GITHUB_OUTPUT
+
+outputs:
+  python-default:
+    description: Command to run the default Python version
+    value: ${{ steps.python-default.outputs.command }}

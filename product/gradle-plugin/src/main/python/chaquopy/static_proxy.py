@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
 
-# Keep valid Python 2 syntax so we can produce an error message.
-from __future__ import absolute_import, division, print_function
-
 # Do this as early as possible to minimize the chance of something else going wrong and causing
 # a less comprehensible error message.
 from .util import check_build_python
@@ -18,6 +15,7 @@ import os
 from os.path import exists, isdir, isfile
 import sys
 import tokenize
+import warnings
 
 import attr
 from attr.validators import instance_of, optional
@@ -43,6 +41,10 @@ def unwrap_if_primitive(name):
 
 
 def main():
+    # TODO: remove once our minimum buildPython version is Python 3.8.
+    for message in [r".*use ast.Constant instead", r".*use value instead"]:
+        warnings.filterwarnings("ignore", message, DeprecationWarning)
+
     args = parse_args()
 
     try:
@@ -228,8 +230,6 @@ class Module(object):
             self.bindings[key] = get_binding(value)
 
     def process_class(self, node):
-        # TODO allow static proxy classes as bases (#5283) and return, argument and throws
-        # types (#5284).
         self.bindings[node.name] = node
         if node.bases:
             first_base = node.bases[0]
@@ -360,7 +360,7 @@ class write_java(object):
         self.indent = 0
         with open(join(pkg_dirname, cls.name + ".java"), "w") as self.out_file:
             self.line("// Generated at {} with the command line:",
-                      datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"))
+                      datetime.now().astimezone().isoformat(timespec="seconds"))
             self.line("// {}", " ".join(sys.argv[1:]))
             self.line()
             self.line("package {};", cls.package)
