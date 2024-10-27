@@ -1,0 +1,21 @@
+package:
+  name: cartopy
+  version: 0.22.0
+
+source:
+  url: https://files.pythonhosted.org/packages/c8/99/e2ad8a60df598de02904867ec83bc9d785b6534a503aecc9426889aa807e/Cartopy-0.22.0.tar.gz
+  
+build:
+  number: 0
+
+requirements:
+  build:
+    - Cython 0.29.33
+    - numpy>= 1.26.2
+    - matplotlib 3.8.2
+    - shapely 2.0.2
+    - packaging 23.2
+    - pyshp 2.3.1
+    - pyproj 3.6.1       
+  host:
+    - python
