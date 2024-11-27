@@ -1,11 +1,22 @@
 package:
   name: cfgrib
-  version: "0.9.10.4"
+  version: 0.9.10.4
 source:
   url: https://files.pythonhosted.org/packages/69/b4/5389e5b3240d24aa1210ba698b3c5c8c800e1a83842af9b1effa52b4a389/cfgrib-0.9.10.4.tar.gz
+  
 build:
-  number: 1
+  number: 0
+  script_env:
+    - SETUPTOOLS_USE_DISTUTILS=local
 requirements:
+  build:
+    - Cython 0.29.33
+    - numpy 1.26.4
+    - xarray 2024.2.0
+#    - eccodes 1.7.0
+      
   host:
     - python
     - eccodes 2.33.0
+
+
