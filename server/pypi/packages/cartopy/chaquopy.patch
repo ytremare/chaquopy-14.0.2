@@ -16,7 +16,7 @@
 +	           break
 +    return version
 +# Macros to enable Cython coverage
-@@ -55,1 +55,16 @@
+@@ -55,1 +55,18 @@
 -    ext_modules=extensions,
 +    name='cartopy',
 +    version=extract_version("lib/cartopy/_version.py"), #Call Extract version from _version.py file,
@@ -33,5 +33,8 @@
 +        "shapely",
 +	 "packaging",
 +	 "pyshp",
++         "Cython",
++         "numpy",
 +    ],
+
 
